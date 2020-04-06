@@ -4,24 +4,26 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"os"
+
 	"github.com/bobwong89757/cellmesh/discovery"
-	"github.com/bobwong89757/cellmesh/discovery/memsd/api"
+	memsd "github.com/bobwong89757/cellmesh/discovery/memsd/api"
 	"github.com/bobwong89757/protoplus/model"
 	"github.com/bobwong89757/protoplus/msgidutil"
 	"github.com/bobwong89757/protoplus/util"
-	"os"
+	"github.com/bobwong89757/routegen/table"
 )
 
 // 从Proto文件中获取路由信息
-func GenRouteTable(dset *model.DescriptorSet) (ret *RouteTable) {
+func GenRouteTable(dset *model.DescriptorSet) (ret *table.RouteTable) {
 
-	ret = new(RouteTable)
+	ret = new(table.RouteTable)
 
 	for _, d := range dset.Structs() {
 
 		if d.TagValueString("RouteRule") != "" && d.TagValueString("Service") != "" {
 
-			ret.Rule = append(ret.Rule, &RouteRule{
+			ret.Rule = append(ret.Rule, &table.RouteRule{
 				MsgName: d.Name,
 				SvcName: d.TagValueString("Service"),
 				Mode:    d.TagValueString("RouteRule"),
@@ -34,7 +36,7 @@ func GenRouteTable(dset *model.DescriptorSet) (ret *RouteTable) {
 }
 
 // 上传路由表到consul KV
-func UploadRouteTable(tab *RouteTable) error {
+func UploadRouteTable(tab *table.RouteTable) error {
 
 	data, err := json.MarshalIndent(tab, "", "\t")
 
@@ -63,7 +65,7 @@ func main() {
 	dset := new(model.DescriptorSet)
 	dset.PackageName = *flagPackage
 
-	var routeTable *RouteTable
+	var routeTable *table.RouteTable
 
 	err := util.ParseFileList(dset)
 
